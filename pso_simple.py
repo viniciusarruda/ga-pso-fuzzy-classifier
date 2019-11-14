@@ -96,11 +96,12 @@ def minimize(costFunc, x0, bounds, num_particles, maxiter, verbose=False):
             swarm[j].update_position(bounds)
         i+=1
 
-    # print final results
-    print('\nFINAL SOLUTION:')
-    print(f'   > {pos_best_g}')
-    print(f'   > {err_best_g}\n')
+    if verbose:
+        # print final results
+        print('\nFINAL SOLUTION:')
+        print(f'   > {pos_best_g}')
+        print(f'   > {err_best_g}\n')
 
-    pass
+    return pos_best_g, err_best_g
 
 #--- END ----------------------------------------------------------------------+
