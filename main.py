@@ -14,6 +14,60 @@ def normalize_dataset(dataset):
 	return (dataset - min_arr) / (np.amax(dataset, axis=0) - min_arr)
 
 
+def evaluate_new_fuzzy_system(w1, w2, w3, w4, data, target):
+
+	input_universe = np.linspace(0, 1, 100)
+
+	x = []
+
+	for w in [w1, w2, w3, w4]:
+		
+		d = {'s': fuzz.trimf(input_universe, [0.0, 0.0, w]),
+		     'm': fuzz.trimf(input_universe, [0.0, w, 1.0]),
+			 'l': fuzz.trimf(input_universe, [w, 1.0, 1.0])}
+
+		x.append(d)
+
+	h, w = data.shape
+
+	hits = 0.0
+
+	for p in range(0, h):
+		_x1 = data[p, 0]
+		_x2 = data[p, 1]
+		_x3 = data[p, 2]
+		_x4 = data[p, 3]
+
+		x1_short = fuzz.interp_membership(input_universe, x[0]['s'], _x1)
+		x1_middle = fuzz.interp_membership(input_universe, x[0]['m'], _x1)
+		x1_long = fuzz.interp_membership(input_universe, x[0]['l'], _x1)
+
+		x2_short = fuzz.interp_membership(input_universe, x[1]['s'], _x2)
+		x2_middle = fuzz.interp_membership(input_universe, x[1]['m'], _x2)
+		x2_long = fuzz.interp_membership(input_universe, x[1]['l'], _x2)
+
+		x3_short = fuzz.interp_membership(input_universe, x[2]['s'], _x3)
+		x3_middle = fuzz.interp_membership(input_universe, x[2]['m'], _x3)
+		x3_long = fuzz.interp_membership(input_universe, x[2]['l'], _x3)
+
+		x4_short = fuzz.interp_membership(input_universe, x[3]['s'], _x4)
+		x4_middle = fuzz.interp_membership(input_universe, x[3]['m'], _x4)
+		x4_long = fuzz.interp_membership(input_universe, x[3]['l'], _x4)
+
+		is_setosa = np.fmin(np.fmax(x3_short, x3_middle), x4_short)
+		is_versicolor = np.fmax(np.fmin(np.fmin(np.fmin(np.fmax(x1_short, x1_long), np.fmax(x2_middle, x2_long)), np.fmax(x3_middle, x3_long)),x4_middle), np.fmin(x1_middle, np.fmin(np.fmin(np.fmax(x2_short, x2_middle),x3_short), x4_long)))
+		is_virginica = np.fmin(np.fmin(np.fmax(x2_short, x2_middle), x3_long), x4_long)
+
+		result = np.argmax([is_setosa, is_versicolor, is_virginica])
+
+		if result == target[p]:
+			hits += 1.0
+
+	return hits / h
+
+
+
+
 def create_new_fuzzy_system(w1, w2, w3, w4):
 	
 	# universe = np.arange(0.0, 1.0, 0.01) # this will not include the 1.0 ...
@@ -61,7 +115,8 @@ def create_new_fuzzy_system(w1, w2, w3, w4):
 
 def custom_deffuzz(v):
 	# Retrieves the class with less error
-	return np.argmin(np.abs([v, v-1, v-2]).T, axis=1)
+	return np.argmin(np.abs([v, v - 1.0, v - 2.0]).T, axis=1)
+	# return np.argmin(np.abs([v - 0.5, v - 1.0, v - 1.5]).T, axis=1)
 
 
 def evaluate_fuzzy_classifier(classifier, samples, labels):
@@ -77,6 +132,7 @@ def evaluate_fuzzy_classifier(classifier, samples, labels):
 
 	return (custom_deffuzz(c) == labels).mean()
 
+
 data, target = None, None
 def create_and_evaluate(w):
 
@@ -85,7 +141,7 @@ def create_and_evaluate(w):
 
 
 def main():
-	# TODO split train and test...
+	
 	iris = datasets.load_iris()
 	normalized_iris = normalize_dataset(iris.data)
 	n_features = normalized_iris.shape[1]
@@ -95,14 +151,18 @@ def main():
 	target = iris.target
 
 	# Test Fuzzy
+	w1, w2, w3, w4 = 0.07, 0.34, 0.48, 0.26
 	# w1, w2, w3, w4 = 0.17391253, 0.08085587, 0.93455427, 0.6963448
 	# w1, w2, w3, w4 = 0.20204260148620853, 1, 0.7445948687715257, 0.6117803008912537
-	# classifier = create_new_fuzzy_system(w1, w2, w3, w4)
-	# print(evaluate_fuzzy_classifier(classifier, normalized_iris, iris.target))
+	classifier = create_new_fuzzy_system(w1, w2, w3, w4)
+	print('Old:')
+	print(evaluate_fuzzy_classifier(classifier, normalized_iris, iris.target))
+	print('New:')
+	print(evaluate_new_fuzzy_system(w1, w2, w3, w4, data, target))
 
 	# GA
-	best, fbest = genetic_algorithm(fitness_func=create_and_evaluate, dim=n_features, n_individuals=10, epochs=30)
-	print(best, fbest)
+	# best, fbest = genetic_algorithm(fitness_func=create_and_evaluate, dim=n_features, n_individuals=10, epochs=30)
+	# print(best, fbest)
 
 	# PSO
 	# initial=[0.5, 0.5, 0.5, 0.5]             
