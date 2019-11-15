@@ -4,6 +4,8 @@ import skfuzzy as fuzz
 from skfuzzy import control as ctrl
 from sklearn import datasets
 from genetic_algorithm import genetic_algorithm
+from tqdm import tqdm
+import matplotlib.pyplot as plt
 
 # https://github.com/nathanrooy/particle-swarm-optimization
 import pso_simple
@@ -49,20 +51,44 @@ def main():
 
 	# Test Fuzzy
 	# w = [0.07, 0.34, 0.48, 0.26] # 95%
-	w = [0, 0.21664307088134033, 0.445098590128248, 0.2350617110613577] # 96.6%
-	print(1.0 - fitness(w))
+	# w = [0, 0.21664307088134033, 0.445098590128248, 0.2350617110613577] # 96.6%
+	# print(1.0 - fitness(w))
 
-	# GA
-	best, fbest = genetic_algorithm(fitness_func=fitness, dim=n_features, n_individuals=10, epochs=30)
-	print(best, fbest)
-	print(1.0 - fitness(best))
+	record = {'GA': [], 'PSO': []}
 
-	# PSO
-	initial=[0.5, 0.5, 0.5, 0.5]             
-	bounds=[(0, 1), (0, 1), (0, 1), (0, 1)] 
-	best, fbest = pso_simple.minimize(fitness, initial, bounds, num_particles=10, maxiter=30, verbose=True)
-	print(best, fbest)
-	print(1.0 - fitness(best))
+	for _ in tqdm(range(30)):
+
+		# GA
+		best, fbest = genetic_algorithm(fitness_func=fitness, dim=n_features, n_individuals=10, epochs=30, verbose=False)
+		record['GA'].append(1.0 - fbest)
+
+		# PSO
+		initial=[0.5, 0.5, 0.5, 0.5]             
+		bounds=[(0, 1), (0, 1), (0, 1), (0, 1)] 
+		best, fbest = pso_simple.minimize(fitness, initial, bounds, num_particles=10, maxiter=30, verbose=False)
+		record['PSO'].append(1.0 - fbest)
+
+
+	# Statistcs about the runs
+	# print('GA:')
+	# print(np.amax(record['GA']), np.amin(record['GA']))
+	# print(np.mean(record['GA']), np.std(record['GA']))
+
+	# print('PSO:')
+	# print(np.amax(record['PSO']), np.amin(record['PSO']))
+	# print(np.mean(record['PSO']), np.std(record['PSO']))
+
+
+	fig, ax = plt.subplots(figsize=(5, 4))
+
+	ax.boxplot(list(record.values()), vert=True, patch_artist=True, labels=list(record.keys())) 
+
+	ax.set_xlabel('Algoritmo')
+	ax.set_ylabel('Acurácia')
+
+	plt.tight_layout()
+	plt.show()
+	
 
 if __name__ == '__main__':
 	main()

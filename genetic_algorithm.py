@@ -71,7 +71,7 @@ def _crossover(male, female, alpha=0.9):
     return offspring1, offspring2  
 
 
-def genetic_algorithm(fitness_func, dim, n_individuals=10, epochs=50, crossover_rate=0.9, mutation_rate=0.1):
+def genetic_algorithm(fitness_func, dim, n_individuals=10, epochs=50, crossover_rate=0.9, mutation_rate=0.1, verbose=False):
     
     assert n_individuals % 2 == 0
     
@@ -111,7 +111,8 @@ def genetic_algorithm(fitness_func, dim, n_individuals=10, epochs=50, crossover_
         population[1][:] = -1.0
         children[:] = 0.0
 
-        print('epoch {:2d}, best fitness = {:.10f}'.format(e, fbest))
+        if verbose:
+            print('epoch {:2d}, best fitness = {:.10f}'.format(e, fbest))
 
     return best, fbest
     
