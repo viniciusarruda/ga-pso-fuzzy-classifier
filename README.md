@@ -10,7 +10,9 @@ then:
 
 `python main.py`
 
-The code will run GA and PSO for 30 times each and show the boxplot for the accuracies found for the iris dataset.
+The code will run GA and PSO* for 30 times each and show the boxplot for the accuracies found for the iris dataset.
+
+*The PSO implementation is from https://github.com/nathanrooy/particle-swarm-optimization
 
 # How the classifier works
 
